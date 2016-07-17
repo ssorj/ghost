@@ -1,5 +1,5 @@
 DESTDIR := ""
-PREFIX := /usr/local
+PREFIX := ${HOME}/.local
 home = ${PREFIX}/share/ghost
 
 .PHONY: default
