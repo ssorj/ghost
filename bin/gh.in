@@ -1,0 +1,105 @@
+#!/usr/bin/python3
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+import os
+import runpy
+import sys
+
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
+default_ghost_home = os.path.normpath("@ghost_home@")
+ghost_home = os.environ.get("GHOST_HOME", default_ghost_home)
+
+sys.path.insert(0, os.path.join(ghost_home, "python"))
+
+from ghost import *
+
+user_dir = os.path.expanduser("~")
+default_config_file = os.path.join(user_dir, ".config", "ghost", "config.py")
+
+def main():
+    config = load_config()
+    
+    description = "Ghost!"
+    epilog = """example usage:
+  % gh clone someproject
+  [Make some changes]
+  % gh push "I made some changes"
+
+Ghost looks for its configuration at $HOME/.config/ghost/config.py.
+"""
+
+    raw = RawDescriptionHelpFormatter
+    parser = ArgumentParser(description=description,
+                            epilog=epilog,
+                            formatter_class=raw)
+
+    parser.add_argument("--user", metavar="USER", default=config.get("user"),
+                        help="GitHub user name")
+
+    parser.add_argument("--init-only", action="store_true",
+                        help="Initialize then exit")
+
+    subparsers = parser.add_subparsers()
+
+    parser_clone = subparsers.add_parser("clone")
+    parser_clone.add_argument("repo", metavar="REPO",
+                              help="The remote repository name")
+    parser_clone.set_defaults(func=clone)
+
+    parser_push = subparsers.add_parser("push")
+    parser_push.add_argument("message", metavar="MESSAGE",
+                             help="The commit message")
+    parser_push.set_defaults(func=push)
+
+    args = parser.parse_args()
+
+    if args.init_only:
+        return
+
+    if "func" not in args:
+        exit("Missing subcommand")
+        
+    args.func(args)
+
+def load_config():
+    user_dir = os.path.expanduser("~")
+    config_file = os.path.join(user_dir, ".config", "ghost", "config.py")
+    config = dict()
+
+    if os.path.exists(config_file):
+        entries = runpy.run_path(config_file, config)
+        config.update(entries)
+
+    return config
+
+def clone(args):
+    if exists(args.repo):
+        exit("Path already exists")
+    
+    call("git clone git@github.com:{}/{}.git", args.user, args.repo)
+
+# info, export, clean, dirty
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
