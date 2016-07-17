@@ -40,8 +40,6 @@ def main():
     description = "Ghost!"
     epilog = """example usage:
   % gh clone someproject
-  [Make some changes]
-  % gh push "I made some changes"
 
 Ghost looks for its configuration at $HOME/.config/ghost/config.py.
 """
@@ -61,13 +59,13 @@ Ghost looks for its configuration at $HOME/.config/ghost/config.py.
 
     parser_clone = subparsers.add_parser("clone")
     parser_clone.add_argument("repo", metavar="REPO",
-                              help="The remote repository name")
+                              help="The repository name")
     parser_clone.set_defaults(func=clone)
 
-    parser_push = subparsers.add_parser("push")
-    parser_push.add_argument("message", metavar="MESSAGE",
-                             help="The commit message")
-    parser_push.set_defaults(func=push)
+    parser_init = subparsers.add_parser("init")
+    parser_init.add_argument("repo", metavar="REPO",
+                             help="The repository name")
+    parser_init.set_defaults(func=init)
 
     args = parser.parse_args()
 
@@ -96,7 +94,16 @@ def clone(args):
     
     call("git clone git@github.com:{}/{}.git", args.user, args.repo)
 
-# info, export, clean, dirty
+def init(args):
+    if exists(join(args.repo, ".git")):
+        exit("The directory is already initialized")
+
+    with working_dir(args.repo):
+        call("git init")
+        call("git add .")
+        call("git commit -m \"Initial commit\"")
+        call("git remote add origin git@github.com:{}/{}.git", args.user, args.repo)
+        call("git push -u origin master")
 
 if __name__ == "__main__":
     try:
