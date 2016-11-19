@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -24,9 +24,7 @@ import sys
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-default_ghost_home = os.path.normpath("@ghost_home@")
-ghost_home = os.environ.get("GHOST_HOME", default_ghost_home)
-
+ghost_home = os.path.normpath("@ghost_home@")
 sys.path.insert(0, os.path.join(ghost_home, "python"))
 
 from ghost import *
@@ -67,6 +65,10 @@ Ghost looks for its configuration at $HOME/.config/ghost/config.py.
                              help="The repository name")
     parser_init.set_defaults(func=init)
 
+    parser_status = subparsers.add_parser("status")
+    parser_status.add_argument("dir", nargs="+")
+    parser_status.set_defaults(func=status)
+
     args = parser.parse_args()
 
     if args.init_only:
@@ -103,8 +105,23 @@ def init(args):
         call("git add .")
         call("git commit -m \"Initial commit\"")
         call("git remote add origin git@github.com:{}/{}.git", args.user, args.repo)
-        call("git push -u origin master")
+        call("git push --set-upstream origin master")
 
+def status(args):
+    set_message_threshold("warn")
+    
+    for repo in args.repo:
+        if not exists(join(repo, ".git")):
+            continue
+        
+        sys.stdout.write("## {:<40} ".format(dir))
+
+        with working_dir(dir):
+            output = call_for_output("git status -sb")
+
+        sys.stdout.write(output)
+        sys.stdout.flush()
+        
 if __name__ == "__main__":
     try:
         main()
