@@ -66,7 +66,8 @@ Ghost looks for its configuration at $HOME/.config/ghost/config.py.
     parser_init.set_defaults(func=init)
 
     parser_status = subparsers.add_parser("status")
-    parser_status.add_argument("dir", nargs="+")
+    parser_status.add_argument("repo", nargs="+",
+                               help="A repository directory")
     parser_status.set_defaults(func=status)
 
     args = parser.parse_args()
@@ -114,9 +115,9 @@ def status(args):
         if not exists(join(repo, ".git")):
             continue
         
-        sys.stdout.write("## {:<40} ".format(dir))
+        sys.stdout.write("## {:<40} ".format(repo))
 
-        with working_dir(dir):
+        with working_dir(repo):
             output = call_for_output("git status -sb")
 
         sys.stdout.write(output)
