@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -34,7 +34,7 @@ default_config_file = os.path.join(user_dir, ".config", "ghost", "config.py")
 
 def main():
     config = load_config()
-    
+
     description = "Ghost!"
     epilog = """example usage:
   % gh clone someproject
@@ -72,12 +72,15 @@ Ghost looks for its configuration at $HOME/.config/ghost/config.py.
 
     args = parser.parse_args()
 
+    if args.user is None:
+        sys.exit("No user name")
+
+    if "func" not in args:
+        sys.exit("Missing subcommand")
+
     if args.init_only:
         return
 
-    if "func" not in args:
-        exit("Missing subcommand")
-        
     args.func(args)
 
 def load_config():
@@ -93,13 +96,13 @@ def load_config():
 
 def clone(args):
     if exists(args.repo):
-        exit("Path already exists")
-    
+        sys.exit("Path already exists")
+
     call("git clone git@github.com:{}/{}.git", args.user, args.repo)
 
 def init(args):
     if exists(join(args.repo, ".git")):
-        exit("The directory is already initialized")
+        sys.exit("The directory is already initialized")
 
     with working_dir(args.repo):
         call("git init")
@@ -110,11 +113,11 @@ def init(args):
 
 def status(args):
     set_message_threshold("warn")
-    
+
     for repo in args.repo:
         if not exists(join(repo, ".git")):
             continue
-        
+
         sys.stdout.write("## {:<40} ".format(repo))
 
         with working_dir(repo):
@@ -122,7 +125,7 @@ def status(args):
 
         sys.stdout.write(output)
         sys.stdout.flush()
-        
+
 if __name__ == "__main__":
     try:
         main()
