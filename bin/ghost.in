@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -19,115 +19,13 @@
 #
 
 import os
-import runpy
 import sys
 
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+home_dir = os.path.normpath("@ghost_home@")
+sys.path.insert(0, os.path.join(home_dir, "python"))
 
-ghost_home = os.path.normpath("@ghost_home@")
-sys.path.insert(0, os.path.join(ghost_home, "python"))
-
-from ghost import *
-
-user_dir = os.path.expanduser("~")
-default_config_file = os.path.join(user_dir, ".config", "ghost", "config.py")
-
-def main():
-    config = load_config()
-
-    description = "Ghost!"
-    epilog = """example usage:
-  % gh clone someproject
-
-Ghost looks for its configuration at $HOME/.config/ghost/config.py.
-"""
-
-    raw = RawDescriptionHelpFormatter
-    parser = ArgumentParser(description=description,
-                            epilog=epilog,
-                            formatter_class=raw)
-
-    parser.add_argument("--user", metavar="USER", default=config.get("user"),
-                        help="GitHub user name")
-
-    parser.add_argument("--init-only", action="store_true",
-                        help="Initialize then exit")
-
-    subparsers = parser.add_subparsers()
-
-    parser_clone = subparsers.add_parser("clone")
-    parser_clone.add_argument("repo", metavar="REPO",
-                              help="The repository name")
-    parser_clone.set_defaults(func=clone)
-
-    parser_init = subparsers.add_parser("init")
-    parser_init.add_argument("repo", metavar="REPO",
-                             help="The repository name")
-    parser_init.set_defaults(func=init)
-
-    parser_status = subparsers.add_parser("status")
-    parser_status.add_argument("repo", nargs="+",
-                               help="A repository directory")
-    parser_status.set_defaults(func=status)
-
-    args = parser.parse_args()
-
-    if args.user is None:
-        sys.exit("No user name")
-
-    if "func" not in args:
-        sys.exit("Missing subcommand")
-
-    if args.init_only:
-        return
-
-    args.func(args)
-
-def load_config():
-    user_dir = os.path.expanduser("~")
-    config_file = os.path.join(user_dir, ".config", "ghost", "config.py")
-    config = dict()
-
-    if os.path.exists(config_file):
-        entries = runpy.run_path(config_file, config)
-        config.update(entries)
-
-    return config
-
-def clone(args):
-    if exists(args.repo):
-        sys.exit("Path already exists")
-
-    call("git clone git@github.com:{}/{}.git", args.user, args.repo)
-
-def init(args):
-    if exists(join(args.repo, ".git")):
-        sys.exit("The directory is already initialized")
-
-    with working_dir(args.repo):
-        call("git init")
-        call("git add .")
-        call("git commit -m \"Initial commit\"")
-        call("git remote add origin git@github.com:{}/{}.git", args.user, args.repo)
-        call("git push --set-upstream origin master")
-
-def status(args):
-    set_message_threshold("warn")
-
-    for repo in args.repo:
-        if not exists(join(repo, ".git")):
-            continue
-
-        sys.stdout.write("## {:<40} ".format(repo))
-
-        with working_dir(repo):
-            output = call_for_output("git status -sb")
-
-        sys.stdout.write(output)
-        sys.stdout.flush()
+from ghost import GhostCommand
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    command = GhostCommand(home_dir)
+    command.main()
