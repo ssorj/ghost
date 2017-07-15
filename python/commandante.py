@@ -17,10 +17,17 @@
 # under the License.
 #
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import with_statement
+
 import argparse as _argparse
+import sys as _sys
 
 class Command(object):
-    def __init__(self, name, home_dir):
+    def __init__(self, home_dir, name=None):
         self.name = name
         self.home_dir = home_dir
 
@@ -29,8 +36,14 @@ class Command(object):
 
         self._args = None
 
+        self.add_argument("--quiet", action="store_true",
+                          help="Print no logging to the console")
+        self.add_argument("--verbose", action="store_true",
+                          help="Print detailed logging to the console")
         self.add_argument("--init-only", action="store_true",
-                          help="Initialize then exit")
+                          help=_argparse.SUPPRESS)
+
+        self.id = self.name
 
     def add_argument(self, *args, **kwargs):
         self.parser.add_argument(*args, **kwargs)
@@ -66,6 +79,8 @@ class Command(object):
 
         self._args = self.parser.parse_args()
 
+        self.quiet = self.args.quiet
+        self.verbose = self.args.verbose
         self.init_only = self.args.init_only
 
     def run(self):
@@ -83,3 +98,31 @@ class Command(object):
             self.run()
         except KeyboardInterrupt:
             pass
+
+    def info(self, message, *args):
+        if self.verbose:
+            self.print(message, *args)
+
+    def notice(self, message, *args):
+        if not self.quiet:
+            self.print(message, *args)
+
+    def warn(self, message, *args):
+        message = "Warning! {}".format(message)
+        self.print(message, *args)
+
+    def error(self, message, *args):
+        message = "Error! {}".format(message)
+        self.print(message, *args)
+
+    def fail(self, message, *args):
+        self.error(message, *args)
+        _sys.exit(1)
+
+    def print(self, message, *args):
+        message = message[0].upper() + message[1:]
+        message = message.format(*args)
+        message = "{}: {}".format(self.id, message)
+
+        _sys.stderr.write("{}\n".format(message))
+        _sys.stderr.flush()
