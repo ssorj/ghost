@@ -17,12 +17,10 @@
 # under the License.
 #
 
-import commandante as _commandante
+import commandant as _commandant
 import plano as _plano
-import runpy as _runpy
+import sys as _sys
 
-_user_dir = _plano.home_dir()
-_default_config_file = _plano.join(_user_dir, ".config", "ghost", "config.py")
 _description = "Ghost!"
 
 _epilog = """
@@ -32,36 +30,35 @@ example usage:
 Ghost looks for its configuration at $HOME/.config/ghost/config.py.
 """
 
-class GhostCommand(_commandante.Command):
+class GhostCommand(_commandant.Command):
     def __init__(self, home_dir):
-        super(GhostCommand, self).__init__("ghost", home_dir)
+        super(GhostCommand, self).__init__(home_dir, "ghost")
 
         self.description = _description
         self.epilog = _epilog
 
-        # XXX default=config.get("user"),
-        self.add_argument("--user", metavar="USER", default=None,
-                          help="GitHub user name")
+        config = self.load_config()
+        user = config.get("user")
 
-        subparsers = self.parser.add_subparsers()
+        self.add_argument("--user", metavar="USER", default=user,
+                          help="GitHub user name (default {})".format(user))
+
+        subparsers = self.add_subparsers()
 
         parser_clone = subparsers.add_parser("clone")
-        parser_clone.add_argument("repo", metavar="REPO",
+        parser_clone.add_argument("repo_name", metavar="REPO-NAME",
                                   help="The repository name")
         parser_clone.set_defaults(func=self.clone_command)
 
         parser_init = subparsers.add_parser("init")
-        parser_init.add_argument("repo", metavar="REPO",
-                                 help="The repository name")
+        parser_init.add_argument("repo_dir", metavar="REPO-DIR",
+                                 help="The repository directory")
         parser_init.set_defaults(func=self.init_command)
 
         parser_status = subparsers.add_parser("status")
-        parser_status.add_argument("repo", nargs="+",
+        parser_status.add_argument("repo_dir", nargs="+", metavar="REPO-DIR",
                                    help="A repository directory")
         parser_status.set_defaults(func=self.status_command)
-
-        self.quiet = False
-        self.verbose = False
 
     def init(self):
         super(GhostCommand, self).init()
@@ -73,61 +70,44 @@ class GhostCommand(_commandante.Command):
             _plano.exit("Missing subcommand")
 
     def run(self):
-        pass
+        self.args.func()
 
     def clone_command(self):
-        pass
+        _plano.set_message_threshold("warn")
+
+        if _plano.exists(self.args.repo_name):
+            exit("Path already exists")
+
+        _plano.call("git clone git@github.com:{}/{}.git", self.args.user, self.args.repo_name)
 
     def init_command(self):
-        pass
+        _plano.set_message_threshold("warn")
+
+        if _plano.exists(_plano.join(self.args.repo_dir, ".git")):
+            self.fail("The directory is already initialized")
+
+        repo_name = _plano.file_name(self.args.repo_dir)
+
+        with _plano.working_dir(self.args.repo_dir):
+            _plano.call("git init")
+            _plano.call("git add .")
+            _plano.call("git commit -m \"Initial commit\"")
+            _plano.call("git remote add origin git@github.com:{}/{}.git", self.args.user, repo_name)
+
+            print("Make sure this repo exists on GitHub and then push:")
+            print("git push -u origin/{}".format(repo_name))
 
     def status_command(self):
-        pass
+        _plano.set_message_threshold("warn")
 
-def main():
-    config = load_config()
+        for repo_dir in self.args.repo_dir:
+            if not _plano.exists(_plano.join(repo_dir, ".git")):
+                continue
 
-    args.func(args)
+            _sys.stdout.write("## {:<40} ".format(repo_dir))
 
-def load_config():
-    user_dir = os.path.expanduser("~")
-    config_file = os.path.join(user_dir, ".config", "ghost", "config.py")
-    config = dict()
+            with _plano.working_dir(repo_dir):
+                output = _plano.call_for_output("git status -sb")
 
-    if os.path.exists(config_file):
-        entries = runpy.run_path(config_file, config)
-        config.update(entries)
-
-    return config
-
-def clone(args):
-    if exists(args.repo):
-        exit("Path already exists")
-
-    call("git clone git@github.com:{}/{}.git", args.user, args.repo)
-
-def init(args):
-    if exists(join(args.repo, ".git")):
-        sys.exit("The directory is already initialized")
-
-    with working_dir(args.repo):
-        call("git init")
-        call("git add .")
-        call("git commit -m \"Initial commit\"")
-        call("git remote add origin git@github.com:{}/{}.git", args.user, args.repo)
-        call("git push --set-upstream origin master")
-
-def status(args):
-    set_message_threshold("warn")
-
-    for repo in args.repo:
-        if not exists(join(repo, ".git")):
-            continue
-
-        sys.stdout.write("## {:<40} ".format(repo))
-
-        with working_dir(repo):
-            output = call_for_output("git status -sb")
-
-        sys.stdout.write(output)
-        sys.stdout.flush()
+            _sys.stdout.write(output.decode("utf-8"))
+            _sys.stdout.flush()

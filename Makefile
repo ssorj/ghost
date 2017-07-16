@@ -21,7 +21,8 @@ DESTDIR := ""
 PREFIX := ${HOME}/.local
 GHOST_HOME = ${PREFIX}/share/ghost
 
-export PATH := ${PREFIX}/bin:${PATH}
+export PATH := install/bin:${PATH}
+export PYTHONPATH := install/share/ghost/python:${PYTHONPATH}
 
 .PHONY: default
 default: devel
@@ -53,11 +54,11 @@ install: build
 	scripts/install-files files ${DESTDIR}${GHOST_HOME}/files
 	scripts/install-files build/bin ${DESTDIR}${PREFIX}/bin
 
-.PHONY: test
-test: PREFIX := install
-test: devel
-
 .PHONY: devel
-devel: PREFIX := install
+devel: PREFIX := ${PWD}/install
 devel: clean install
 	ghost --init-only status example
+
+.PHONY: test
+test: devel
+	scripts/test-ghost
