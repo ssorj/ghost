@@ -57,7 +57,7 @@ install: build
 .PHONY: devel
 devel: PREFIX := ${PWD}/install
 devel: clean install
-	ghost --init-only status example
+	ghost --init-only --user x status example
 
 .PHONY: test
 test: devel
