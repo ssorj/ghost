@@ -62,3 +62,7 @@ devel: clean install
 .PHONY: test
 test: devel
 	scripts/test-ghost
+
+.PHONY: update-%
+update-%:
+	curl "https://raw.githubusercontent.com/ssorj/$*/master/python/$*.py" -o python/$*.py
