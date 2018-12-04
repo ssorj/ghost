@@ -30,8 +30,7 @@ def main():
 
      parser.add_argument("input_file", metavar="INPUT-FILE")
      parser.add_argument("output_file", metavar="OUTPUT-FILE")
-     parser.add_argument("-a", "--attribute", metavar=("NAME", "VALUE"),
-                         nargs=2, action="append")
+     parser.add_argument("-a", "--attribute", metavar="NAME=VALUE", action="append")
 
      args = parser.parse_args()
 
@@ -43,7 +42,8 @@ def main():
      with open(args.input_file, "r") as f:
           content = f.read()
 
-     for name, value in args.attribute:
+     for attribute in args.attribute:
+          name, value = attribute.split("=", 1)
           content = content.replace("@{}@".format(name), value)
 
      with open(args.output_file, "w") as f:

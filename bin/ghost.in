@@ -21,11 +21,12 @@
 import os
 import sys
 
-home_dir = os.path.normpath("@ghost_home@")
-sys.path.insert(0, os.path.join(home_dir, "python"))
+default_home = os.path.normpath("@ghost_home@")
+home = os.environ.get("GHOST_HOME", default_home)
+sys.path.insert(0, os.path.join(home, "python"))
 
 from ghost import GhostCommand
 
 if __name__ == "__main__":
-    command = GhostCommand(home_dir)
+    command = GhostCommand(home)
     command.main()

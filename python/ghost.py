@@ -73,7 +73,7 @@ class GhostCommand(_commandant.Command):
         self.args.func()
 
     def clone_command(self):
-        _plano.set_message_threshold("warn")
+        _plano.enable_logging(level="warn")
 
         if _plano.exists(self.args.repo_name):
             exit("Path already exists")
@@ -81,7 +81,7 @@ class GhostCommand(_commandant.Command):
         _plano.call("git clone git@github.com:{}/{}.git", self.args.user, self.args.repo_name)
 
     def init_command(self):
-        _plano.set_message_threshold("warn")
+        _plano.enable_logging(level="warn")
 
         if _plano.exists(_plano.join(self.args.repo_dir, ".git")):
             self.fail("The directory is already initialized")
@@ -98,7 +98,7 @@ class GhostCommand(_commandant.Command):
             print("git push -u origin/{}".format(repo_name))
 
     def status_command(self):
-        _plano.set_message_threshold("warn")
+        _plano.enable_logging(level="warn")
 
         for repo_dir in self.args.repo_dir:
             if not _plano.exists(_plano.join(repo_dir, ".git")):
@@ -107,7 +107,7 @@ class GhostCommand(_commandant.Command):
             _sys.stdout.write("## {:<40} ".format(repo_dir))
 
             with _plano.working_dir(repo_dir):
-                output = _plano.call_for_output("git status -sb")
+                output = _plano.call_for_stdout("git status -sb")
 
-            _sys.stdout.write(output.decode("utf-8"))
+            _sys.stdout.write(output)
             _sys.stdout.flush()
