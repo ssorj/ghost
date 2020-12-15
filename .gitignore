@@ -1,2 +1,3 @@
-build
-install
+*.pyc
+__pycache__/
+/build
