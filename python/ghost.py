@@ -29,18 +29,58 @@ def load_config():
         entries = _runpy.run_path(config_file, config)
         config.update(entries)
 
-    return config
+    return Namespace(**config)
 
-config = load_config()
+_config = load_config()
+_owner_arg = CommandArgument("owner", short_option="o")
 
-@command
-def clone(repo, output_dir=None):
+@command(help="Clone a repository from GitHub",
+         args=(CommandArgument("output_dir", positional=True), _owner_arg))
+def clone(repo_name, output_dir=None, owner=_config.owner):
     check_program("git")
 
-    user = config["user"]
-    command = ["git", "clone", f"git@github.com:{user}/{repo}.git"]
+    output_dir = nvl(output_dir, repo_name)
 
-    if output_dir is not None:
-        command.append(output_dir)
+    run(["git", "clone", f"git@github.com:{owner}/{repo_name}.git", output_dir])
 
-    run(command)
+@command(args=(CommandArgument("repo_dir", positional=True), _owner_arg))
+def init(repo_dir=".", repo_name=None, owner=_config.owner):
+    check_program("git")
+
+    if exists(join(repo_dir, ".git")):
+        exit("The directory is already initialized")
+
+    if repo_dir in (".", ".."):
+        repo_dir = get_absolute_path(repo_dir)
+
+    repo_name = nvl(repo_name, get_base_name(repo_dir))
+
+    with working_dir(repo_dir):
+        run("git init")
+        run("git add .")
+        run("git commit -m Initial")
+        run(f"git remote add origin git@github.com:{owner}/{repo_name}.git")
+
+        print("Make sure this repo exists on GitHub and then push:")
+        print(f"git push -u origin/{repo_name}")
+
+@command(args=(CommandArgument("repo_dir", default="."),))
+def uninit(repo_dir):
+    git_dir = join(repo_dir, ".git")
+
+    check_dirs(git_dir)
+    remove(git_dir)
+
+@command
+def status(*repo_dirs):
+    for repo_dir in repo_dirs:
+        if not exists(join(repo_dir, ".git")):
+            continue
+
+        _sys.stdout.write("## {:<40} ".format(repo_dir))
+
+        with working_dir(repo_dir):
+            output = call("git status -sb", quiet=True)
+
+        _sys.stdout.write(output)
+        _sys.stdout.flush()
