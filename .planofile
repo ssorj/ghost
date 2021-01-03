@@ -4,7 +4,7 @@ project.name = "ghost"
 project.excluded_modules = ["bullseye"]
 
 @command
-def test():
+def test(app):
     with working_dir():
          run("ghost clone --owner ssorj ghost")
          run("ghost status ghost")
