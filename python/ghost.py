@@ -33,18 +33,22 @@ def load_config():
 
 _config = load_config()
 _owner_arg = CommandArgument("owner", short_option="o")
+_repo_dir_arg = CommandArgument("repo_dir", positional=True)
 
-@command(help="Clone a repository from GitHub",
-         args=(CommandArgument("output_dir", positional=True), _owner_arg))
-def clone(repo_name, output_dir=None, owner=_config.owner):
+@command(args=(CommandArgument("output_dir", positional=True), _owner_arg))
+def clone(app, repo_name, output_dir=None, owner=_config.owner):
+    """Clone a repository from GitHub"""
+
     check_program("git")
 
     output_dir = nvl(output_dir, repo_name)
 
     run(["git", "clone", f"git@github.com:{owner}/{repo_name}.git", output_dir])
 
-@command(args=(CommandArgument("repo_dir", positional=True), _owner_arg))
-def init(repo_dir=".", repo_name=None, owner=_config.owner):
+@command(args=(_repo_dir_arg, _owner_arg))
+def init(app, repo_dir=".", repo_name=None, owner=_config.owner):
+    """Initialize a repository"""
+
     check_program("git")
 
     if exists(join(repo_dir, ".git")):
@@ -64,15 +68,17 @@ def init(repo_dir=".", repo_name=None, owner=_config.owner):
         print("Make sure this repo exists on GitHub and then push:")
         print(f"git push -u origin/{repo_name}")
 
-@command(args=(CommandArgument("repo_dir", default="."),))
-def uninit(repo_dir):
+@command(args=(_repo_dir_arg,))
+def uninit(app, repo_dir="."):
+    """Uninitialize a repository"""
+
     git_dir = join(repo_dir, ".git")
 
     check_dirs(git_dir)
     remove(git_dir)
 
 @command
-def status(*repo_dirs):
+def status(app, *repo_dirs):
     for repo_dir in repo_dirs:
         if not exists(join(repo_dir, ".git")):
             continue
