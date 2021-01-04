@@ -32,10 +32,12 @@ def load_config():
     return Namespace(**config)
 
 _config = load_config()
-_owner_arg = CommandArgument("owner", short_option="o")
-_repo_dir_arg = CommandArgument("repo_dir", positional=True)
+_repo_name_arg = CommandArgument("repo_name", positional=True, help="The name of the desired repository")
+_repo_dir_arg = CommandArgument("repo_dir", positional=True, help="The directory containing the repository")
+_output_dir_arg = CommandArgument("output_dir", positional=True, help="The destination directory")
+_owner_arg = CommandArgument("owner", short_option="o", help="The GitHub user or organization containing the repository")
 
-@command(args=(CommandArgument("output_dir", positional=True), _owner_arg))
+@command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
 def clone(app, repo_name, output_dir=None, owner=_config.owner):
     """Clone a repository from GitHub"""
 
@@ -43,7 +45,7 @@ def clone(app, repo_name, output_dir=None, owner=_config.owner):
 
     output_dir = nvl(output_dir, repo_name)
 
-    run(["git", "clone", f"git@github.com:{owner}/{repo_name}.git", output_dir])
+    run(f"git clone git@github.com:{owner}/{repo_name}.git {output_dir}")
 
 @command(args=(_repo_dir_arg, _owner_arg))
 def init(app, repo_dir=".", repo_name=None, owner=_config.owner):
@@ -79,6 +81,11 @@ def uninit(app, repo_dir="."):
 
 @command
 def status(app, *repo_dirs):
+    """Report the status of multiple repositories"""
+
+    if not repo_dirs:
+        repo_dirs = (".",)
+
     for repo_dir in repo_dirs:
         if not exists(join(repo_dir, ".git")):
             continue
@@ -90,3 +97,18 @@ def status(app, *repo_dirs):
 
         _sys.stdout.write(output)
         _sys.stdout.flush()
+
+@command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
+def subrepo_clone(app, repo_name, output_dir=None, owner=_config.owner):
+    """Clone a repository from GitHub into an existing repository subdirectory"""
+
+    if output_dir is None:
+        check_dir(".git") # XXX find this and then define the output dir from there
+        output_dir = join("subrepos", repo_name)
+
+    run(f"git subrepo clone git@github.com:{owner}/{repo_name}.git {output_dir}")
+
+@command(args=(CommandArgument("subrepo_dir", help="The directory containing the subrepository"), _owner_arg))
+def subrepo_pull(app, subrepo_dir, owner=_config.owner):
+    """Pull upstream changes for a subrepository"""
+    run(f"git subrepo pull {subrepo_dir}")
