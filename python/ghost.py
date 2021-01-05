@@ -34,7 +34,7 @@ def load_config():
 _config = load_config()
 _repo_name_arg = CommandArgument("repo_name", positional=True, help="The name of the desired repository")
 _repo_dir_arg = CommandArgument("repo_dir", positional=True, help="The directory containing the repository")
-_output_dir_arg = CommandArgument("output_dir", positional=True, help="The destination directory")
+_output_dir_arg = CommandArgument("output_dir", positional=True, help="The output directory")
 _owner_arg = CommandArgument("owner", short_option="o", help="The GitHub user or organization containing the repository")
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
@@ -99,16 +99,9 @@ def status(app, *repo_dirs):
         _sys.stdout.flush()
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
-def subrepo_clone(app, repo_name, output_dir=None, owner=_config.owner):
+def subrepo(app, repo_name, output_dir, owner=_config.owner):
     """Clone a repository from GitHub into an existing repository subdirectory"""
 
-    if output_dir is None:
-        check_dir(".git") # XXX find this and then define the output dir from there
-        output_dir = join("subrepos", repo_name)
+    assert output_dir is not None
 
     run(f"git subrepo clone git@github.com:{owner}/{repo_name}.git {output_dir}")
-
-@command(args=(CommandArgument("subrepo_dir", help="The directory containing the subrepository"), _owner_arg))
-def subrepo_pull(app, subrepo_dir, owner=_config.owner):
-    """Pull upstream changes for a subrepository"""
-    run(f"git subrepo pull {subrepo_dir}")
