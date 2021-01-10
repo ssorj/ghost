@@ -5,7 +5,9 @@ project.excluded_modules = ["bullseye"]
 
 @command
 def test(app):
-    with working_dir():
+    build(app)
+
+    with project_env(), working_dir():
          run("ghost clone --owner ssorj ghost")
          run("ghost status ghost")
 
@@ -15,3 +17,4 @@ def test(app):
          write("abc/README.md", "Hello!")
 
          run("ghost init --owner ssorj abc")
+         run("ghost uninit abc")

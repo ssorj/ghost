@@ -65,10 +65,11 @@ def init(app, repo_dir=".", repo_name=None, owner=_config.owner):
         run("git init")
         run("git add .")
         run("git commit -m Initial")
+        run("git branch -M main")
         run(f"git remote add origin git@github.com:{owner}/{repo_name}.git")
 
         print("Make sure this repo exists on GitHub and then push:")
-        print(f"git push -u origin/{repo_name}")
+        print(f"git push -u origin main")
 
 @command(args=(_repo_dir_arg,))
 def uninit(app, repo_dir="."):
@@ -76,7 +77,7 @@ def uninit(app, repo_dir="."):
 
     git_dir = join(repo_dir, ".git")
 
-    check_dirs(git_dir)
+    check_dir(git_dir)
     remove(git_dir)
 
 @command
