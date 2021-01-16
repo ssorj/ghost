@@ -31,6 +31,9 @@ def load_config():
 
     return Namespace(**config)
 
+def repo_url(owner, repo_name):
+    return f"git@github.com:{owner}/{repo_name}.git"
+
 _config = load_config()
 _config_owner = getattr(_config, "owner", None)
 
@@ -47,7 +50,7 @@ def clone(app, repo_name, output_dir=None, owner=_config_owner):
 
     output_dir = nvl(output_dir, repo_name)
 
-    run(f"git clone git@github.com:{owner}/{repo_name}.git {output_dir}")
+    run(f"git clone {repo_url(owner, repo_name)} {output_dir}")
 
 @command(args=(_repo_dir_arg, _owner_arg))
 def init(app, repo_dir=".", repo_name=None, owner=_config_owner):
@@ -68,7 +71,7 @@ def init(app, repo_dir=".", repo_name=None, owner=_config_owner):
         run("git add .")
         run("git commit -m Initial")
         run("git branch -M main")
-        run(f"git remote add origin git@github.com:{owner}/{repo_name}.git")
+        run(f"git remote add origin {repo_url(owner, repo_name)}")
 
         print("Make sure this repo exists on GitHub and then push:")
         print(f"git push -u origin main")
@@ -107,4 +110,8 @@ def subrepo(app, repo_name, output_dir, owner=_config_owner):
 
     assert output_dir is not None
 
-    run(f"git subrepo clone git@github.com:{owner}/{repo_name}.git {output_dir}")
+    run(f"git subrepo clone {repo_url(owner, repo_name)} {output_dir}")
+
+@command(args=(_repo_name_arg, _owner_arg))
+def url(app, repo_name, owner=_config_owner):
+    print(repo_url(owner, repo_name))
