@@ -32,13 +32,15 @@ def load_config():
     return Namespace(**config)
 
 _config = load_config()
+_config_owner = getattr(_config, "owner", None)
+
 _repo_name_arg = CommandArgument("repo_name", positional=True, help="The name of the desired repository")
 _repo_dir_arg = CommandArgument("repo_dir", positional=True, help="The directory containing the repository")
 _output_dir_arg = CommandArgument("output_dir", positional=True, help="The output directory")
 _owner_arg = CommandArgument("owner", short_option="o", help="The GitHub user or organization containing the repository")
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
-def clone(app, repo_name, output_dir=None, owner=_config.owner):
+def clone(app, repo_name, output_dir=None, owner=_config_owner):
     """Clone a repository from GitHub"""
 
     check_program("git")
@@ -48,7 +50,7 @@ def clone(app, repo_name, output_dir=None, owner=_config.owner):
     run(f"git clone git@github.com:{owner}/{repo_name}.git {output_dir}")
 
 @command(args=(_repo_dir_arg, _owner_arg))
-def init(app, repo_dir=".", repo_name=None, owner=_config.owner):
+def init(app, repo_dir=".", repo_name=None, owner=_config_owner):
     """Initialize a repository"""
 
     check_program("git")
@@ -100,7 +102,7 @@ def status(app, *repo_dirs):
         _sys.stdout.flush()
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
-def subrepo(app, repo_name, output_dir, owner=_config.owner):
+def subrepo(app, repo_name, output_dir, owner=_config_owner):
     """Clone a repository from GitHub into an existing repository subdirectory"""
 
     assert output_dir is not None
