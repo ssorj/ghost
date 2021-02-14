@@ -40,7 +40,7 @@ _config_owner = getattr(_config, "owner", None)
 _repo_name_arg = CommandArgument("repo_name", positional=True, help="The name of the desired repository")
 _repo_dir_arg = CommandArgument("repo_dir", positional=True, help="The directory containing the repository")
 _output_dir_arg = CommandArgument("output_dir", positional=True, help="The output directory")
-_owner_arg = CommandArgument("owner", short_option="o", help="The GitHub user or organization containing the repository")
+_owner_arg = CommandArgument("owner", help="The GitHub user or organization containing the repository")
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
 def clone(app, repo_name, output_dir=None, owner=_config_owner):
@@ -114,4 +114,6 @@ def subrepo(app, repo_name, output_dir, owner=_config_owner):
 
 @command(args=(_repo_name_arg, _owner_arg))
 def url(app, repo_name, owner=_config_owner):
+    """Print the URL for a GitHub repo"""
+
     print(repo_url(owner, repo_name))
