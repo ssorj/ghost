@@ -82,7 +82,9 @@ def init(repo_dir=".", repo_name=None, owner=_config_owner):
 
 @command(args=(_repo_dir_arg,))
 def uninit(repo_dir="."):
-    """Uninitialize a repository"""
+    """
+    Uninitialize a repository
+    """
 
     git_dir = join(repo_dir, ".git")
 
@@ -127,3 +129,8 @@ def url(repo_name, owner=_config_owner):
     """
 
     print(repo_url(owner, repo_name))
+
+if __name__ == "__main__":
+     command = PlanoCommand()
+     command._bind_commands(globals())
+     command.main()
