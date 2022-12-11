@@ -1,11 +1,10 @@
 from bullseye import *
 
 project.name = "ghost"
-project.excluded_modules = ["bullseye"]
 
 @command
-def test(app):
-    build(app)
+def test():
+    build()
 
     with project_env(), working_dir():
          run("ghost clone --owner ssorj ghost")

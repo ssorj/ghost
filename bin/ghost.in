@@ -24,7 +24,7 @@ import sys
 home = os.environ.get("GHOST_HOME", "@default_home@")
 sys.path.insert(0, os.path.join(home, "python"))
 
-from plano import *
+from plano.commands import PlanoCommand
 
 if __name__ == "__main__":
-    PlanoCommand(join(home, "python", "ghost.py")).main()
+    PlanoCommand(os.path.join(home, "python", "ghost.py")).main()

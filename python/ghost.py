@@ -43,8 +43,10 @@ _output_dir_arg = CommandArgument("output_dir", positional=True, help="The outpu
 _owner_arg = CommandArgument("owner", help="The GitHub user or organization containing the repository")
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
-def clone(app, repo_name, output_dir=None, owner=_config_owner):
-    """Clone a repository from GitHub"""
+def clone(repo_name, output_dir=None, owner=_config_owner):
+    """
+    Clone a repository from GitHub
+    """
 
     check_program("git")
 
@@ -53,8 +55,10 @@ def clone(app, repo_name, output_dir=None, owner=_config_owner):
     run(f"git clone {repo_url(owner, repo_name)} {output_dir}")
 
 @command(args=(_repo_dir_arg, _owner_arg))
-def init(app, repo_dir=".", repo_name=None, owner=_config_owner):
-    """Initialize a repository"""
+def init(repo_dir=".", repo_name=None, owner=_config_owner):
+    """
+    Initialize a repository
+    """
 
     check_program("git")
 
@@ -77,7 +81,7 @@ def init(app, repo_dir=".", repo_name=None, owner=_config_owner):
         print(f"git push -u origin main")
 
 @command(args=(_repo_dir_arg,))
-def uninit(app, repo_dir="."):
+def uninit(repo_dir="."):
     """Uninitialize a repository"""
 
     git_dir = join(repo_dir, ".git")
@@ -86,8 +90,10 @@ def uninit(app, repo_dir="."):
     remove(git_dir)
 
 @command
-def status(app, *repo_dirs):
-    """Report the status of multiple repositories"""
+def status(*repo_dirs):
+    """
+    Report the status of multiple repositories
+    """
 
     if not repo_dirs:
         repo_dirs = (".",)
@@ -98,22 +104,26 @@ def status(app, *repo_dirs):
 
         _sys.stdout.write("## {:<40} ".format(repo_dir))
 
-        with working_dir(repo_dir):
+        with working_dir(repo_dir, quiet=True):
             output = call("git status -sb", quiet=True)
 
         _sys.stdout.write(output)
         _sys.stdout.flush()
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
-def subrepo(app, repo_name, output_dir, owner=_config_owner):
-    """Clone a repository from GitHub into an existing repository subdirectory"""
+def subrepo(repo_name, output_dir, owner=_config_owner):
+    """
+    Clone a repository from GitHub into an existing repository subdirectory
+    """
 
     assert output_dir is not None
 
     run(f"git subrepo clone {repo_url(owner, repo_name)} {output_dir}")
 
 @command(args=(_repo_name_arg, _owner_arg))
-def url(app, repo_name, owner=_config_owner):
-    """Print the URL for a GitHub repo"""
+def url(repo_name, owner=_config_owner):
+    """
+    Print the URL for a GitHub repo
+    """
 
     print(repo_url(owner, repo_name))
