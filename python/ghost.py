@@ -18,11 +18,13 @@
 #
 
 import runpy as _runpy
+import sys as _sys
 
 from plano import *
+from plano.commands import PlanoCommand
 
 def load_config():
-    config_file = _os.path.join(get_home_dir(), ".config", "ghost", "config.py")
+    config_file = join(get_home_dir(), ".config/ghost/config.py")
     config = dict()
 
     if exists(config_file):
@@ -37,15 +39,15 @@ def repo_url(owner, repo_name):
 _config = load_config()
 _config_owner = getattr(_config, "owner", None)
 
-_repo_name_arg = CommandArgument("repo_name", positional=True, help="The name of the desired repository")
-_repo_dir_arg = CommandArgument("repo_dir", positional=True, help="The directory containing the repository")
+_repo_name_arg = CommandArgument("repo_name", positional=True, help="The name of the desired repo")
+_repo_dir_arg = CommandArgument("repo_dir", positional=True, help="The directory containing the repo")
 _output_dir_arg = CommandArgument("output_dir", positional=True, help="The output directory")
-_owner_arg = CommandArgument("owner", help="The GitHub user or organization containing the repository")
+_owner_arg = CommandArgument("owner", help="The GitHub user or organization containing the repo")
 
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
 def clone(repo_name, output_dir=None, owner=_config_owner):
     """
-    Clone a repository from GitHub
+    Clone a repo from GitHub
     """
 
     check_program("git")
@@ -57,7 +59,7 @@ def clone(repo_name, output_dir=None, owner=_config_owner):
 @command(args=(_repo_dir_arg, _owner_arg))
 def init(repo_dir=".", repo_name=None, owner=_config_owner):
     """
-    Initialize a repository
+    Initialize a repo
     """
 
     check_program("git")
@@ -83,7 +85,7 @@ def init(repo_dir=".", repo_name=None, owner=_config_owner):
 @command(args=(_repo_dir_arg,))
 def uninit(repo_dir="."):
     """
-    Uninitialize a repository
+    Uninitialize a repo
     """
 
     git_dir = join(repo_dir, ".git")
@@ -94,7 +96,7 @@ def uninit(repo_dir="."):
 @command
 def status(*repo_dirs):
     """
-    Report the status of multiple repositories
+    Report the status of multiple repos
     """
 
     if not repo_dirs:
@@ -115,7 +117,7 @@ def status(*repo_dirs):
 @command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
 def subrepo(repo_name, output_dir, owner=_config_owner):
     """
-    Clone a repository from GitHub into an existing repository subdirectory
+    Clone a repo from GitHub into an existing repo subdirectory
     """
 
     assert output_dir is not None
@@ -130,7 +132,8 @@ def url(repo_name, owner=_config_owner):
 
     print(repo_url(owner, repo_name))
 
-if __name__ == "__main__":
-     command = PlanoCommand()
-     command._bind_commands(globals())
-     command.main()
+def main():
+    module = _sys.modules[__name__]
+    description = "Commands for working with my GitHub repos"
+
+    PlanoCommand(module, description=description).main()
