@@ -1083,19 +1083,31 @@ def yaml_operations():
         assert input_data == parsed_data, (input_data, parsed_data)
         assert yaml == emitted_yaml, (yaml, emitted_yaml)
 
+@command
+def prancer():
+    notice("Base prancer")
+
+@command
+def vixen():
+    prancer()
+
 @test
 def plano_command():
     with working_dir():
         PlanoCommand().main([])
+
+    PlanoCommand(_sys.modules[__name__]).main([])
+
+    PlanoCommand().main(["-m", "plano.tests"])
+
+    with expect_system_exit():
+        PlanoCommand().main(["-m", "nosuchmodule"])
 
     with working_dir():
         write(".plano.py", "garbage")
 
         with expect_system_exit():
             PlanoCommand().main([])
-
-    with expect_system_exit():
-        PlanoCommand("no-such-file").main([])
 
     with expect_system_exit():
         PlanoCommand().main(["-f", "no-such-file"])
@@ -1157,6 +1169,8 @@ def plano_command():
         result = read_json("balderdash.json")
         assert result == ["bunk", "malarkey", "bollocks"], result
 
+        run_command("dasher", "alpha", "--beta", "123")
+
         # Gamma is an unexpected arg
         with expect_system_exit():
             run_command("dasher", "alpha", "--gamma", "123")
@@ -1172,14 +1186,6 @@ def plano_command():
 
         with expect_system_exit():
             run_command("no-parent")
-
-@command
-def prancer():
-    notice("Base prancer")
-
-@command
-def vixen():
-    prancer()
 
 @test
 def planosh_command():
