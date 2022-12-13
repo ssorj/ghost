@@ -21,7 +21,6 @@ import runpy as _runpy
 import sys as _sys
 
 from plano import *
-from plano.commands import PlanoCommand
 
 def load_config():
     config_file = join(get_home_dir(), ".config/ghost/config.py")
