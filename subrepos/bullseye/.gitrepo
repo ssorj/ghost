@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:ssorj/bullseye.git
 	branch = main
-	commit = 64c044cbaaa34a0f1867f132d8f882d140472933
-	parent = 8f503b85a37a12434dd56d14faea543f22131c00
+	commit = fe6eeeba12de9fae01a7286e3496f7c1ab2e9744
+	parent = e16b5c5cd4c80a4d5af1ffe0188a57fb81e20385
 	method = merge
-	cmdver = 0.4.5
+	cmdver = 0.4.6
