@@ -38,12 +38,12 @@ def repo_url(owner, repo_name):
 _config = load_config()
 _config_owner = getattr(_config, "owner", None)
 
-_repo_name_arg = CommandArgument("repo_name", positional=True, help="The name of the desired repo")
-_repo_dir_arg = CommandArgument("repo_dir", positional=True, help="The directory containing the repo")
-_output_dir_arg = CommandArgument("output_dir", positional=True, help="The output directory")
-_owner_arg = CommandArgument("owner", help="The GitHub user or organization containing the repo")
+_repo_name_param = CommandParameter("repo_name", positional=True, help="The name of the desired repo")
+_repo_dir_param = CommandParameter("repo_dir", positional=True, help="The directory containing the repo")
+_output_dir_param = CommandParameter("output_dir", positional=True, help="The output directory")
+_owner_param = CommandParameter("owner", help="The GitHub user or organization containing the repo")
 
-@command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
+@command(parameters=(_repo_name_param, _output_dir_param, _owner_param))
 def clone(repo_name, output_dir=None, owner=_config_owner):
     """
     Clone a repo from GitHub
@@ -55,7 +55,7 @@ def clone(repo_name, output_dir=None, owner=_config_owner):
 
     run(f"git clone {repo_url(owner, repo_name)} {output_dir}")
 
-@command(args=(_repo_dir_arg, _owner_arg))
+@command(parameters=(_repo_dir_param, _owner_param))
 def init(repo_dir=".", repo_name=None, owner=_config_owner):
     """
     Initialize a repo
@@ -81,7 +81,7 @@ def init(repo_dir=".", repo_name=None, owner=_config_owner):
         print("Make sure this repo exists on GitHub and then push:")
         print(f"git push -u origin main")
 
-@command(args=(_repo_dir_arg,))
+@command(parameters=(_repo_dir_param,))
 def uninit(repo_dir="."):
     """
     Uninitialize a repo
@@ -113,7 +113,7 @@ def status(*repo_dirs):
         _sys.stdout.write(output)
         _sys.stdout.flush()
 
-@command(args=(_repo_name_arg, _output_dir_arg, _owner_arg))
+@command(parameters=(_repo_name_param, _output_dir_param, _owner_param))
 def subrepo(repo_name, output_dir, owner=_config_owner):
     """
     Clone a repo from GitHub into an existing repo subdirectory
@@ -123,7 +123,7 @@ def subrepo(repo_name, output_dir, owner=_config_owner):
 
     run(f"git subrepo clone {repo_url(owner, repo_name)} {output_dir}")
 
-@command(args=(_repo_name_arg, _owner_arg))
+@command(parameters=(_repo_name_param, _owner_param))
 def url(repo_name, owner=_config_owner):
     """
     Print the URL for a GitHub repo
